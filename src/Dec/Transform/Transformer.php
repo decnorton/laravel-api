@@ -25,9 +25,9 @@ class Transformer {
     {
         $this->fractal = new Fractal\Manager;
 
-        if (Input::has('embed'))
+        if (Input::has('with'))
         {
-            $this->fractal->setRequestedScopes(explode(',', Input::get('embed')));
+            $this->fractal->setRequestedScopes(explode(',', Input::get('with')));
         }
     }
 
@@ -72,13 +72,14 @@ class Transformer {
         }
         else
         {
+            $count = Input::get('count') ?: static::$defaultPageCount;
             if (is_string($model))
             {
-                $paginator = $model::paginate(Input::get('count') ?: static::$defaultPageCount);
+                $paginator = $model::paginate($count);
             }
             else if (is_a($model, '\Illuminate\Database\Eloquent\Builder'))
             {
-                $paginator = $model->paginate();
+                $paginator = $model->paginate($count);
             }
             else
             {
