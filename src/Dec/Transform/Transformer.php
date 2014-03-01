@@ -1,5 +1,7 @@
 <?php namespace Dec\Transform;
 
+use Carbon\Carbon;
+use Exception;
 use Input;
 use League\Fractal;
 use League\Fractal\Resource\Collection;
@@ -35,7 +37,6 @@ class Transformer {
     {
         $resource = new Collection($collection, new $transformer);
 
-        // Turn all of that into JSON
         return $this->fractal->createData($resource)->toArray();
     }
 
@@ -55,37 +56,35 @@ class Transformer {
      */
     public function paginate($model, $transformer)
     {
+        // If we got a string, get a new \Eloquent\Builder
+        if (is_string($model))
+            $builder = $model::query();
+
+        // If it's not a string and not a builder, reject
+        else if (!is_a($model, '\Illuminate\Database\Eloquent\Builder'))
+            throw new InvalidArgumentException('Must be string or \Illuminate\Database\Eloquent\Builder');
+        // Must be a builder
+        else
+            $builder = $model;
+
+        // Check for a since parameter
+        if ($since = Input::get('since'))
+        {
+            try
+            {
+                $since = new Carbon($since);
+                $builder->where('updated_at', '>', $since);
+            }
+            catch (Exception $e) { /* Ignore */ }
+        }
+
         if (Input::getBoolean('all'))
         {
-            if (is_string($model))
-            {
-                $collection = $model::all();
-            }
-            else if (is_a($model, '\Illuminate\Database\Eloquent\Builder'))
-            {
-                $collection = $model->get();
-            }
-            else
-            {
-                throw new InvalidArgumentException('Must be string or \Illuminate\Database\Eloquent\Builder');
-            }
+            $collection = $builder->get();
         }
         else
         {
-            $count = Input::get('count') ?: static::$defaultPageCount;
-            if (is_string($model))
-            {
-                $paginator = $model::paginate($count);
-            }
-            else if (is_a($model, '\Illuminate\Database\Eloquent\Builder'))
-            {
-                $paginator = $model->paginate($count);
-            }
-            else
-            {
-                throw new InvalidArgumentException('Must be string or \Illuminate\Database\Eloquent\Builder');
-            }
-
+            $paginator = $builder->paginate(Input::get('count') ?: static::$defaultPageCount);
             $collection = $paginator->getCollection();
         }
 
@@ -95,6 +94,11 @@ class Transformer {
             $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
 
         return $this->fractal->createData($resource)->toArray();
+    }
+
+    public function paginateCollection($collectio, $tranformer)
+    {
+
     }
 
 }
