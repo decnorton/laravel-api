@@ -88,7 +88,10 @@ class Transformer {
             $collection = $paginator->getCollection();
         }
 
-        $resource = new Collection($collection, new $transformer);
+        if (is_string($transformer))
+            $transformer = new $transformer;
+
+        $resource = new Collection($collection, $transformer);
 
         if (!empty($paginator))
             $resource->setPaginator(new IlluminatePaginatorAdapter($paginator));
