@@ -1,4 +1,4 @@
-<?php namespace Dec\Transform\Facades;
+<?php namespace Dec\Api\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

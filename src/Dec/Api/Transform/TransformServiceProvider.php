@@ -1,4 +1,4 @@
-<?php namespace Dec\Transform;
+<?php namespace Dec\Api\Transform;
 
 use Illuminate\Support\ServiceProvider;
 

@@ -1,5 +1,5 @@
 {
-    "name": "dec/transform",
+    "name": "dec/api",
     "description": "",
     "authors": [
         {
@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-0": {
-            "Dec\\Transform": "src/"
+            "Dec\\Api": "src/"
         }
     },
     "minimum-stability": "stable"
