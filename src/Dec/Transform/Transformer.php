@@ -5,6 +5,7 @@ use Exception;
 use Input;
 use League\Fractal;
 use League\Fractal\Resource\Collection;
+use League\Fractal\Resource\Item;
 use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 
 class Transformer {
@@ -42,7 +43,7 @@ class Transformer {
 
     public function transform($model, $transformer)
     {
-        $resource = new Item($model->toArray(), new $transformer);
+        $resource = new Item($model, new $transformer);
 
         return $this->fractal->createData($resource)->toArray();
     }
