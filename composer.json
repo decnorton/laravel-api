@@ -10,6 +10,9 @@
     "require": {
         "php": ">=5.3.0",
         "illuminate/support": "4.1.*",
+        "illuminate/database": "4.1.*",
+        "nesbot/Carbon": "*",
+        "rhumsaa/uuid": "~2.7",
         "league/fractal": "0.7.*"
     },
     "autoload": {
