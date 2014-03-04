@@ -64,6 +64,7 @@ class Transformer {
         // If it's not a string and not a builder, reject
         else if (!is_a($model, '\Illuminate\Database\Eloquent\Builder'))
             throw new InvalidArgumentException('Must be string or \Illuminate\Database\Eloquent\Builder');
+
         // Must be a builder
         else
             $builder = $model;
