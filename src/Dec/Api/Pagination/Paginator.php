@@ -17,7 +17,7 @@ class Paginator {
     {
         $showAll = Input::getBoolean('all');
         $simple = Input::getBoolean('simple');
-        $relations = Input::getBoolean('relations', false);
+        $with = Input::has('with') ? explode(',', Input::get('with')) : null;
 
         $simpleFields = $simpleFields ?: static::$defaultSimpleFields;
 
@@ -28,7 +28,6 @@ class Paginator {
         else
         {
             $builder = $model;
-
             $model = $builder->getModel();
         }
 
@@ -42,12 +41,12 @@ class Paginator {
             $builder->setEagerLoads([]);
             $builder->select($simpleFields);
         }
-        else if ($relations)
+        else if (count($with) > 0)
         {
-            // Get array of all relations
-            if (!empty($model::$relationships))
+            foreach ($with as $relation)
             {
-                $builder->with($model::$relationships);
+                if (method_exists($model, $relation))
+                    $builder->with($relation);
             }
         }
 
