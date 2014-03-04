@@ -1,13 +1,13 @@
 <?php namespace Dec\Api\Auth;
 
 use Carbon\Carbon;
-use Dec\Api\Models\AccessToken;
+use Dec\Api\Models\ApiSession;
 use Exception;
 use Illuminate\Auth\UserInterface;
 use Illuminate\Database\Connection;
 use Illuminate\Encryption\Encrypter;
 
-class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
+class EloquentApiSessionProvider implements ApiSessionProviderInterface {
 
     /**
      * Encrypter instance
@@ -33,7 +33,7 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
      * @param Encrypter $encrypter
      * @param HashProvider $hasher
      */
-    function __construct(Encrypter $encrypter, HashProvider $hasher)
+    public function __construct(Encrypter $encrypter, HashProvider $hasher)
     {
         $this->encrypter = $encrypter;
         $this->hasher = $hasher;
@@ -44,14 +44,14 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
      * Creates an auth token for user.
      *
      * @param \Illuminate\Auth\UserInterface $user
-     * @return \Dec\Api\Models\AccessToken|false
+     * @return \Dec\Api\Models\ApiSession|false
      */
     public function create(UserInterface $user, $expires = true)
     {
         if ($user == null || $user->getAuthIdentifier() == null)
             return false;
 
-        $accessToken = $this->generateAccessToken($user->getAuthIdentifier(), $expires);
+        $accessToken = $this->generateApiSession($user->getAuthIdentifier(), $expires);
 
         if (!$accessToken->save())
             return false;
@@ -59,11 +59,9 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
         return $accessToken;
     }
 
-    protected function generateAccessToken($userId, $expires = true, $publicKey = null)
+    protected function generateApiSession($userId, $expires = true)
     {
-        if (empty($publicKey))
-            $publicKey = $this->hasher->make();
-
+        $publicKey = $this->hasher->make();
         $privateKey = $this->hasher->makePrivate($publicKey);
 
         if ($expires === false)
@@ -84,37 +82,36 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
             }
         }
 
+        $sesssion              = new ApiSession;
+        $sesssion->user_id     = $userId;
+        $sesssion->public_key  = $publicKey;
+        $sesssion->private_key = $privateKey;
+        $sesssion->expires     = $expires;
 
-        $accessToken                = new AccessToken;
-        $accessToken->user_id       = $userId;
-        $accessToken->public_key    = $publicKey;
-        $accessToken->private_key   = $privateKey;
-        $accessToken->expires       = $expires;
-
-        return $accessToken;
+        return $sesssion;
     }
 
     /**
      * Find user id from auth token.
      *
-     * @param $serializedAccessToken string
-     * @return \Dec\Api\Models\AccessToken|null
+     * @param $serializedApiSession string
+     * @return \Dec\Api\Models\ApiSession|null
      */
-    public function find($serializedAccessToken)
+    public function find($serializedApiSession)
     {
         // Get userId and public key
-        $accessToken = $this->deserializeToken($serializedAccessToken);
+        $accessToken = $this->deserializeSession($serializedApiSession);
 
         if($accessToken == null)
             return null;
 
-        if(!$this->verifyKeys($accessToken->public_key, $accessToken->private_key))
+        if(!$this->checkKeys($accessToken->public_key, $accessToken->private_key))
             return null;
 
         return $accessToken;
     }
 
-    protected function verifyKeys($publicKey, $privateKey)
+    protected function checkKeys($publicKey, $privateKey)
     {
         return $this->hasher->check($publicKey, $privateKey);
     }
@@ -122,10 +119,10 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
     /**
      * Returns serialized token.
      *
-     * @param AccessToken $token
+     * @param ApiSession $token
      * @return string
      */
-    public function serializeToken(AccessToken $token)
+    public function serializeSession(ApiSession $token)
     {
         $payload = [
             'user_id' => $token->user_id,
@@ -139,9 +136,9 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
      * Deserializes token.
      *
      * @param string $payload
-     * @return AccessToken|null
+     * @return ApiSession|null
      */
-    public function deserializeToken($payload)
+    public function deserializeSession($payload)
     {
         try
         {
@@ -157,7 +154,7 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
 
         $privateKey = $this->hasher->makePrivate($data['public_key']);
 
-        $accessToken = AccessToken::where(function($query) use ($data, $privateKey) {
+        $accessToken = ApiSession::where(function($query) use ($data, $privateKey) {
             $query->where('user_id',        $data['user_id'])
                   ->where('public_key',     $data['public_key'])
                   ->where('private_key',    $privateKey);
@@ -175,7 +172,7 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
         if ($identifier instanceof UserInterface)
             $identifier = $identifier->getAuthIdentifier();
 
-        $result = AccessToken::where('user_id', $identifier)->delete();
+        $result = ApiSession::where('user_id', $identifier)->delete();
 
         return $result > 0;
     }
@@ -183,9 +180,9 @@ class EloquentAccessTokenProvider implements AccessTokenProviderInterface {
     public function delete($accessToken)
     {
         if (is_string($accessToken))
-            $accessToken = $this->deserializeToken($accessToken);
+            $accessToken = $this->deserializeSession($accessToken);
 
-        if (!is_a($accessToken, '\Dec\Api\Models\AccessToken'))
+        if (!is_a($accessToken, '\Dec\Api\Models\ApiSession'))
             return false;
 
         return $accessToken->delete();

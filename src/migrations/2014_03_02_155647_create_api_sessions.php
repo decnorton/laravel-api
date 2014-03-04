@@ -19,7 +19,7 @@ class CreateApiSessions extends Migration {
 			$table->timestamps();
 		});
 
-		Schema::create('api_access_tokens', function ($table)
+		Schema::create('api_sessions', function ($table)
 		{
 			$table->increments('id');
 
@@ -44,12 +44,12 @@ class CreateApiSessions extends Migration {
 	 */
 	public function down()
 	{
-		Schema::table('api_access_tokens', function ($table)
+		Schema::table('api_sessions', function ($table)
 		{
-			$table->dropForeign('api_access_tokens_user_id_foreign');
+			$table->dropForeign('api_sessions_user_id_foreign');
 		});
 
-		Schema::drop('api_access_tokens');
+		Schema::drop('api_sessions');
 	}
 
 }

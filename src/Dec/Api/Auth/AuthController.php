@@ -11,19 +11,19 @@ use Validator;
 class AuthController extends Controller {
 
     /**
-     * @var \Dec\Api\Auth\AccessTokenDriver
+     * @var \Dec\Api\Auth\ApiSessionDriver
      */
     protected $driver;
 
 
-    public function __construct(AccessTokenDriver $driver)
+    public function __construct(ApiSessionDriver $driver)
     {
         $this->driver = $driver;
     }
 
     public function index()
     {
-        $payload = Api::retrieveAccessToken();
+        $payload = Api::retrieveApiSession();
         $user = $this->driver->validate($payload);
 
         if (!$user)
@@ -32,9 +32,13 @@ class AuthController extends Controller {
         return Response::json($user);
     }
 
+    /**
+     * Login
+     */
     public function store()
     {
         $input = Input::all();
+
         $credentials = [
             'password' => Input::get('password')
         ];
@@ -52,15 +56,14 @@ class AuthController extends Controller {
             $credentials['email'] = $email;
         }
         else if(Input::has('username'))
-        {
             $credentials['username'] = Input::get('username');
-        }
         else
-        {
             return Response::error('Email missing');
-        }
 
-        $token = $this->driver->attempt($credentials, Input::getBoolean('expires', true));
+        $token = $this->driver->attempt(
+            $credentials,
+            Input::getBoolean('expires', true)
+        );
 
         if (!$token)
             return Response::error('Unable to generate token');
@@ -77,7 +80,7 @@ class AuthController extends Controller {
 
     public function destroy()
     {
-        $payload = Api::retrieveAccessToken();
+        $payload = Api::retrieveApiSession();
 
         $user = $this->driver->validate($payload);
 

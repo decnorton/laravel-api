@@ -2,12 +2,12 @@
 
 use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\UserProviderInterface;
-use Dec\Api\Models\AccessToken;
+use Dec\Api\Models\ApiSession;
 use Dec\Api\Exceptions\NotAuthorizedException;
 
-class AccessTokenDriver {
+class ApiSessionDriver {
     /**
-     * @var \Dec\Api\Auth\AccessTokenProviderInterface
+     * @var \Dec\Api\Auth\ApiSessionProviderInterface
      */
     protected $tokens;
 
@@ -16,16 +16,16 @@ class AccessTokenDriver {
      */
     protected $users;
 
-    public function __construct(AccessTokenProviderInterface $tokens, UserProviderInterface $users)
+    public function __construct(EloquentApiSessionProvider $tokens, UserProviderInterface $users)
     {
         $this->tokens = $tokens;
         $this->users = $users;
     }
 
     /**
-     * Returns the AccessTokenInterface provider.
+     * Returns the ApiSessionInterface provider.
      *
-     * @return \Dec\Api\Auth\AccessTokenProviderInterface
+     * @return \Dec\Api\Auth\ApiSessionProviderInterface
      */
     public function getProvider()
     {
@@ -57,11 +57,11 @@ class AccessTokenDriver {
     }
 
     /**
-     * Attempt to create an AccessToken from user credentials.
+     * Attempt to create an ApiSession from user credentials.
      *
      * @param array             $credentials
      * @param bool|Carbon       $expires        When the token should expire
-     * @return bool|AccessToken
+     * @return bool|ApiSession
      */
     public function attempt(array $credentials, $expires = true)
     {
@@ -81,7 +81,7 @@ class AccessTokenDriver {
      * Create auth token for user.
      *
      * @param UserInterface $user
-     * @return bool|AccessToken
+     * @return bool|ApiSession
      */
     public function create(UserInterface $user, $expires = true)
     {
@@ -91,10 +91,10 @@ class AccessTokenDriver {
     /**
      * Retrieve user from auth token.
      *
-     * @param AccessToken $token
+     * @param ApiSession $token
      * @return UserInterface|null
      */
-    public function user(AccessToken $token)
+    public function user(ApiSession $token)
     {
         return $this->users->retrieveByID($token->user_id);
     }
@@ -102,10 +102,10 @@ class AccessTokenDriver {
     /**
      * Serialize token for public use.
      *
-     * @param AccessToken $token
+     * @param ApiSession $token
      * @return string
      */
-    public function publicToken(AccessToken $token)
+    public function publicToken(ApiSession $token)
     {
         return $this->tokens->serializeToken($token);
     }

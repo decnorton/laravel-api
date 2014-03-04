@@ -2,14 +2,19 @@
 
 use Illuminate\Support\Manager;
 
-class AccessTokenManager extends Manager {
+class ApiSessionManager extends Manager {
+
+    protected function getDefaultDriver()
+    {
+        return 'eloquent';
+    }
 
     protected function createEloquentDriver()
     {
         $provider = $this->createEloquentProvider();
         $users = $this->app['auth']->driver()->getProvider();
 
-        return new AccessTokenDriver($provider, $users);
+        return new ApiSessionDriver($provider, $users);
     }
 
     protected function createEloquentProvider()
@@ -17,12 +22,7 @@ class AccessTokenManager extends Manager {
         $encrypter = $this->app['encrypter'];
         $hasher = new HashProvider($this->app['config']['app.key']);
 
-        return new EloquentAccessTokenProvider($encrypter, $hasher);
-    }
-
-    protected function getDefaultDriver()
-    {
-        return 'eloquent';
+        return new EloquentApiSessionProvider($encrypter, $hasher);
     }
 
 }

@@ -1,13 +1,13 @@
 <?php namespace Dec\Api\Models;
 
-class AccessToken extends Model {
+class ApiSession extends Model {
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'api_access_tokens';
+    protected $table = 'api_sessions';
 
     public function client()
     {

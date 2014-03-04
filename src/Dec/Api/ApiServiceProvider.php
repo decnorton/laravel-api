@@ -1,7 +1,7 @@
 <?php namespace Dec\Api;
 
 use Illuminate\Support\ServiceProvider;
-use Dec\Api\Auth\AccessTokenManager;
+use Dec\Api\Auth\ApiSessionManager;
 use Dec\Api\Auth\AuthController;
 
 class ApiServiceProvider extends ServiceProvider {
@@ -33,14 +33,15 @@ class ApiServiceProvider extends ServiceProvider {
         $this->app->bind('api', 'Dec\Api\Api');
         $this->app->bind('transformer', 'Dec\Api\Transform\Transformer');
 
-        $this->app->bindShared('dec.access.token', function($app)
+
+        $this->app->bindShared('api.session', function($app)
         {
-            return new AccessTokenManager($app);
+            return new ApiSessionManager($app);
         });
 
         $this->app->bind('Dec\Api\Auth\AuthController', function($app)
         {
-            $driver = $app['dec.access.token']->driver();
+            $driver = $app['api.session']->driver();
 
             return new AuthController($driver);
         });
@@ -53,7 +54,7 @@ class ApiServiceProvider extends ServiceProvider {
      */
     public function provides()
     {
-        return array('dec.access.token');
+        return array('api.session');
     }
 
 }
