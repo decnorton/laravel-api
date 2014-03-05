@@ -12,7 +12,6 @@ class Paginator {
     public static $defaultCount = 20;
     public static $defaultSimpleFields = ['id', 'name'];
 
-
     public static function paginate($model, array $simpleFields = null)
     {
         $showAll = Input::getBoolean('all');
@@ -45,7 +44,7 @@ class Paginator {
         {
             foreach ($with as $relation)
             {
-                if (method_exists($model, $relation))
+                if (method_exists($model, explode('.', $relation)[0]))
                     $builder->with($relation);
             }
         }
