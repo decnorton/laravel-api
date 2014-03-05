@@ -14,7 +14,7 @@ class ApiAuthManager extends Manager {
         $provider = $this->createEloquentProvider();
         $users = $this->app['auth']->driver()->getProvider();
 
-        return new ApiSessionDriver($provider, $users);
+        return new ApiAuthDriver($provider, $users);
     }
 
     protected function createEloquentProvider()

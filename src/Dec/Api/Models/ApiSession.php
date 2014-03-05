@@ -22,7 +22,7 @@ class ApiSession extends Model {
 
     public function client()
     {
-        return $this->hasOne('ApiClient', 'id', 'client_id');
+        return $this->hasOne('\Dec\Api\Models\ApiClient', 'id', 'client_id');
     }
 
     public function user()

@@ -1,5 +1,6 @@
 <?php namespace Dec\Api\Auth;
 
+use Dec\Api\Models\ApiClient;
 use Dec\Api\Models\ApiSession;
 use Illuminate\Auth\UserInterface;
 
@@ -8,7 +9,7 @@ interface ApiAuthProviderInterface {
     /**
      * Creates an API session for user.
      */
-    public function createSession(UserInterface $user);
+    public function createSession(UserInterface $user, ApiClient $client, $expires);
 
     /**
      * Find user id from session.

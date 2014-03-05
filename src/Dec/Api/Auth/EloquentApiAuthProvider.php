@@ -2,6 +2,7 @@
 
 use Carbon\Carbon;
 use Dec\Api\Models\ApiSession;
+use Dec\Api\Models\ApiClient;
 use Exception;
 use Illuminate\Auth\UserInterface;
 use Illuminate\Database\Connection;
@@ -46,12 +47,16 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
      * @param \Illuminate\Auth\UserInterface $user
      * @return \Dec\Api\Models\ApiSession
      */
-    public function createSession(UserInterface $user, $expires = true)
+    public function createSession(UserInterface $user, ApiClient $client, $expires = true)
     {
         if ($user == null || $user->getAuthIdentifier() == null)
             return null;
 
-        $accessToken = $this->generateSession($user->getAuthIdentifier(), $expires);
+        $accessToken = $this->generateSession(
+            $user->getAuthIdentifier(),
+            $client->id,
+            $expires
+        );
 
         if (!$accessToken->save())
             return null;
@@ -59,7 +64,7 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
         return $accessToken;
     }
 
-    protected function generateSession($userId, $expires = true)
+    protected function generateSession($userId, $clientId, $expires = true)
     {
         $publicKey = $this->hasher->make();
         $privateKey = $this->hasher->makePrivate($publicKey);
@@ -83,6 +88,7 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
         }
 
         $session              = new ApiSession;
+        $session->client_id   = $clientId;
         $session->user_id     = $userId;
         $session->public_key  = $publicKey;
         $session->private_key = $privateKey;
@@ -107,7 +113,7 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
 
     public function findUser($session)
     {
-        if (!is_a($session, 'ApiSession'))
+        if (!($session instanceof ApiSession))
             $session = $this->findSession($session);
 
         if (!$session)
@@ -155,7 +161,7 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
             return null;
         }
 
-        if (empty('client_id') || empty($data['user_id']) || empty($data['public_key']))
+        if (empty($data['client_id']) || empty($data['user_id']) || empty($data['public_key']))
             return null;
 
         $privateKey = $this->hasher->makePrivate($data['public_key']);
@@ -223,6 +229,6 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
      */
     public function validateClient($clientPayload)
     {
-        return $this->find($clientPayload) != null;
+        return $this->findClient($clientPayload) != null;
     }
 }

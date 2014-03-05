@@ -1,6 +1,8 @@
 <?php namespace Dec\Api\Auth;
 
+use Dec\Api\Models\ApiClient;
 use Dec\Api\Models\ApiSession;
+use Dec\Api\Exceptions\InvalidApiClientException;
 use Dec\Api\Exceptions\NotAuthorizedException;
 use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\UserProviderInterface;
@@ -54,8 +56,8 @@ class ApiAuthDriver {
      */
     public function attempt(array $credentials, $client, $expires = true)
     {
-        if (!$this->validateClient($client))
-
+        if (!$client = $this->provider->findClient($client))
+            throw new InvalidApiClientException;
 
         // Email takes precedence over username
         if (isset($credentials['email']) && isset($credentials['username']))
@@ -64,7 +66,7 @@ class ApiAuthDriver {
         $user = $this->users->retrieveByCredentials($credentials);
 
         if($user instanceof UserInterface && $this->users->validateCredentials($user, $credentials))
-             return $this->create($user, $expires);
+             return $this->create($user, $client, $expires);
 
         return false;
     }
@@ -75,9 +77,9 @@ class ApiAuthDriver {
      * @param UserInterface $user
      * @return ApiSession
      */
-    public function create(UserInterface $user, $expires = true)
+    public function create(UserInterface $user, ApiClient $client, $expires = true)
     {
-        return $this->provider->createSession($user, $expires);
+        return $this->provider->createSession($user, $client, $expires);
     }
 
     /**
