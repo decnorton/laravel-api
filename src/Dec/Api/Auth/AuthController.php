@@ -16,7 +16,7 @@ class AuthController extends Controller {
     protected $driver;
 
 
-    public function __construct(ApiSessionDriver $driver)
+    public function __construct(ApiAuthDriver $driver)
     {
         $this->driver = $driver;
     }
@@ -24,7 +24,7 @@ class AuthController extends Controller {
     public function index()
     {
         $payload = Api::retrieveApiSession();
-        $user = $this->driver->validate($payload);
+        $user = $this->driver->user($payload);
 
         if (!$user)
             throw new NotAuthorizedException;
@@ -37,7 +37,7 @@ class AuthController extends Controller {
      */
     public function store()
     {
-        $input = Input::all();
+        $apiClient = Input::get('client');
 
         $credentials = [
             'password' => Input::get('password')
@@ -62,6 +62,7 @@ class AuthController extends Controller {
 
         $token = $this->driver->attempt(
             $credentials,
+            $client,
             Input::getBoolean('expires', true)
         );
 
@@ -82,7 +83,7 @@ class AuthController extends Controller {
     {
         $payload = Api::retrieveApiSession();
 
-        $user = $this->driver->validate($payload);
+        $user = $this->driver->user($payload);
 
         if (!$user)
             return Response::notAuthorized();

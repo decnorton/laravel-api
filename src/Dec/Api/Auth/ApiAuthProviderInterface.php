@@ -3,12 +3,12 @@
 use Dec\Api\Models\ApiSession;
 use Illuminate\Auth\UserInterface;
 
-interface ApiSessionProviderInterface {
+interface ApiAuthProviderInterface {
 
     /**
      * Creates an API session for user.
      */
-    public function create(UserInterface $user);
+    public function createSession(UserInterface $user);
 
     /**
      * Find user id from session.
@@ -16,7 +16,7 @@ interface ApiSessionProviderInterface {
      * @param $serializedSession string
      * @return \Dec\Api\Auth\ApiSession|null
      */
-    public function find($serializedSession);
+    public function findSession($serializedSession);
 
     /**
      * Returns serialized session.
@@ -35,8 +35,27 @@ interface ApiSessionProviderInterface {
     public function deserializeSession($payload);
 
     /**
-     * @param mixed|\Illuminate\Auth\UserInterface $identifier
+     * Purge all sessions for user
+     *
+     * @param mixed|\Illuminate\Auth\UserInterface $user
      * @return bool
      */
-    public function purge($identifier);
+    public function purgeSessions($user);
+
+
+    /**
+     * Validate client. Accept id or name
+     *
+     * @param  string|int   $client
+     * @return ApiClient
+     */
+    public function findClient($client);
+
+    /**
+     * Validate client. Accept id or name
+     *
+     * @param  string|int   $client
+     * @return boolean
+     */
+    public function validateClient($client);
 }

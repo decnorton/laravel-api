@@ -91,6 +91,7 @@ class User extends Model implements UserInterface, RemindableInterface {
         return parent::buildUpdateRules($rules);
     }
 
+
     /**
      * Relations
      */
@@ -98,6 +99,11 @@ class User extends Model implements UserInterface, RemindableInterface {
     public function roles()
     {
         return $this->belongsToMany('Role', 'user_roles');
+    }
+
+    public function sessions()
+    {
+        return $this->hasMany('Dec\Api\Models\ApiSession', 'user_id', 'id');
     }
 
     /**

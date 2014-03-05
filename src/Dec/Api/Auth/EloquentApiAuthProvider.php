@@ -7,7 +7,7 @@ use Illuminate\Auth\UserInterface;
 use Illuminate\Database\Connection;
 use Illuminate\Encryption\Encrypter;
 
-class EloquentApiSessionProvider implements ApiSessionProviderInterface {
+class EloquentApiAuthProvider implements ApiAuthProviderInterface {
 
     /**
      * Encrypter instance
@@ -44,22 +44,22 @@ class EloquentApiSessionProvider implements ApiSessionProviderInterface {
      * Creates an auth token for user.
      *
      * @param \Illuminate\Auth\UserInterface $user
-     * @return \Dec\Api\Models\ApiSession|false
+     * @return \Dec\Api\Models\ApiSession
      */
-    public function create(UserInterface $user, $expires = true)
+    public function createSession(UserInterface $user, $expires = true)
     {
         if ($user == null || $user->getAuthIdentifier() == null)
-            return false;
+            return null;
 
-        $accessToken = $this->generateApiSession($user->getAuthIdentifier(), $expires);
+        $accessToken = $this->generateSession($user->getAuthIdentifier(), $expires);
 
         if (!$accessToken->save())
-            return false;
+            return null;
 
         return $accessToken;
     }
 
-    protected function generateApiSession($userId, $expires = true)
+    protected function generateSession($userId, $expires = true)
     {
         $publicKey = $this->hasher->make();
         $privateKey = $this->hasher->makePrivate($publicKey);
@@ -82,33 +82,38 @@ class EloquentApiSessionProvider implements ApiSessionProviderInterface {
             }
         }
 
-        $sesssion              = new ApiSession;
-        $sesssion->user_id     = $userId;
-        $sesssion->public_key  = $publicKey;
-        $sesssion->private_key = $privateKey;
-        $sesssion->expires     = $expires;
+        $session              = new ApiSession;
+        $session->user_id     = $userId;
+        $session->public_key  = $publicKey;
+        $session->private_key = $privateKey;
+        $session->expires     = $expires;
 
-        return $sesssion;
+        return $session;
     }
 
-    /**
-     * Find user id from auth token.
-     *
-     * @param $serializedApiSession string
-     * @return \Dec\Api\Models\ApiSession|null
-     */
-    public function find($serializedApiSession)
+    public function findSession($serializedApiSession)
     {
         // Get userId and public key
-        $accessToken = $this->deserializeSession($serializedApiSession);
+        $apiSession = $this->deserializeSession($serializedApiSession);
 
-        if($accessToken == null)
+        if($apiSession == null)
             return null;
 
-        if(!$this->checkKeys($accessToken->public_key, $accessToken->private_key))
+        if(!$this->checkKeys($apiSession->public_key, $apiSession->private_key))
             return null;
 
-        return $accessToken;
+        return $apiSession;
+    }
+
+    public function findUser($session)
+    {
+        if (!is_a($session, 'ApiSession'))
+            $session = $this->findSession($session);
+
+        if (!$session)
+            return null;
+
+        return $session->user;
     }
 
     protected function checkKeys($publicKey, $privateKey)
@@ -125,7 +130,8 @@ class EloquentApiSessionProvider implements ApiSessionProviderInterface {
     public function serializeSession(ApiSession $token)
     {
         $payload = [
-            'user_id' => $token->user_id,
+            'client_id'  => $token->client_id,
+            'user_id'    => $token->user_id,
             'public_key' => $token->public_key
         ];
 
@@ -149,13 +155,14 @@ class EloquentApiSessionProvider implements ApiSessionProviderInterface {
             return null;
         }
 
-        if (empty($data['user_id']) || empty($data['public_key']))
+        if (empty('client_id') || empty($data['user_id']) || empty($data['public_key']))
             return null;
 
         $privateKey = $this->hasher->makePrivate($data['public_key']);
 
         $accessToken = ApiSession::where(function($query) use ($data, $privateKey) {
             $query->where('user_id',        $data['user_id'])
+                  ->where('client_id',      $data['client_id'])
                   ->where('public_key',     $data['public_key'])
                   ->where('private_key',    $privateKey);
         })->first();
@@ -167,7 +174,7 @@ class EloquentApiSessionProvider implements ApiSessionProviderInterface {
      * @param mixed|\Illuminate\Auth\UserInterface $identifier
      * @return bool
      */
-    public function purge($identifier)
+    public function purgeSessions($identifier)
     {
         if ($identifier instanceof UserInterface)
             $identifier = $identifier->getAuthIdentifier();
@@ -177,7 +184,7 @@ class EloquentApiSessionProvider implements ApiSessionProviderInterface {
         return $result > 0;
     }
 
-    public function delete($accessToken)
+    public function deleteSession($accessToken)
     {
         if (is_string($accessToken))
             $accessToken = $this->deserializeSession($accessToken);
@@ -188,4 +195,34 @@ class EloquentApiSessionProvider implements ApiSessionProviderInterface {
         return $accessToken->delete();
     }
 
+    /**
+     * Validate client. Accept id or name
+     *
+     * @param  string|int   $client
+     * @return ApiClient
+     */
+    public function findClient($clientPayload)
+    {
+        if (!$clientPayload)
+            return null;
+
+        $client = ApiClient::where(function($query) use($clientPayload)
+        {
+            $query->where('id', $clientPayload)
+                  ->orWhere('name', $clientPayload);
+        })->first();
+
+        return $client;
+    }
+
+    /**
+     * Validate client. Accept id or name
+     *
+     * @param  string|int   $client
+     * @return boolean
+     */
+    public function validateClient($clientPayload)
+    {
+        return $this->find($clientPayload) != null;
+    }
 }

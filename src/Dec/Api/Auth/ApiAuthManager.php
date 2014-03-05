@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Manager;
 
-class ApiSessionManager extends Manager {
+class ApiAuthManager extends Manager {
 
     protected function getDefaultDriver()
     {
@@ -22,7 +22,7 @@ class ApiSessionManager extends Manager {
         $encrypter = $this->app['encrypter'];
         $hasher = new HashProvider($this->app['config']['app.key']);
 
-        return new EloquentApiSessionProvider($encrypter, $hasher);
+        return new EloquentApiAuthProvider($encrypter, $hasher);
     }
 
 }
