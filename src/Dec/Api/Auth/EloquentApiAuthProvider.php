@@ -7,6 +7,7 @@ use Exception;
 use Illuminate\Auth\UserInterface;
 use Illuminate\Database\Connection;
 use Illuminate\Encryption\Encrypter;
+use Illuminate\Encryption\DecryptException;
 
 class EloquentApiAuthProvider implements ApiAuthProviderInterface {
 
@@ -152,6 +153,7 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
      */
     public function deserializeSession($payload)
     {
+
         try
         {
             $data = $this->encrypter->decrypt($payload);
