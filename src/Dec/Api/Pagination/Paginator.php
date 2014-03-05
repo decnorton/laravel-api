@@ -20,6 +20,7 @@ class Paginator {
 
         $simpleFields = $simpleFields ?: static::$defaultSimpleFields;
 
+        // String = Model class name
         if (is_string($model))
         {
             $builder = $model::query();
@@ -32,7 +33,6 @@ class Paginator {
 
         if (!is_a($builder, 'Illuminate\Database\Eloquent\Builder'))
             throw new InvalidArgumentException('$model should be a string or Builder');
-
 
         if ($simple)
         {
@@ -60,6 +60,13 @@ class Paginator {
                 return Response::error("Invalid 'since' timestamp");
             }
         }
+
+        if (Input::has('order_by'))
+        {
+            $ascending = Input::getBoolean('asc', true);
+            $builder->orderBy(Input::get('order_by'), $ascending ? 'asc' : 'desc');
+        }
+
 
         if ($showAll)
         {
