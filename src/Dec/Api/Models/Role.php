@@ -105,26 +105,39 @@ class Role extends Model {
         }
     }
 
-    public function syncPerms($permissions)
+    /**
+     * Alias for Eloquent ManyToMany::sync(). Overwrites existing.
+     * @param  [type] $permissions [description]
+     * @return [type]              [description]
+     */
+    public function syncPermissions($permissions)
     {
         if (!$permissions)
-        {
             $permissions = [];
-        }
 
         if (!is_array($permissions))
         {
             $this->errors()->add('permissions', 'Not an array');
+
             return false;
         }
 
-        $attachArray = [];
-        foreach($permissions as $perm)
+        $sync = [];
+
+        foreach($permissions as $permission)
         {
-            $attachArray[] = $perm['id'];
+            if (is_object($permission))
+                $id = $permission->getKey();
+
+            if (is_array($permission))
+                $id = $permission['id'];
+
+            if (!empty($id))
+                $sync[] = $id;
         }
 
-        $this->permissions()->sync($attachArray);
+        $this->permissions()->sync($sync);
+
         return true;
     }
 
