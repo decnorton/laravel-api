@@ -310,7 +310,6 @@ class Model extends \Illuminate\Database\Eloquent\Model {
      *
      * @param int   $id
      * @param array $rules
-     *
      * @return array Rules with exclusions applied
      */
     protected function buildUniqueExclusionRules(array $rules = array())

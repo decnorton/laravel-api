@@ -4,6 +4,7 @@ use Illuminate\Auth\UserInterface;
 use Illuminate\Auth\Reminders\RemindableInterface;
 
 class User extends Model implements UserInterface, RemindableInterface {
+
     /**
      * The database table used by the model.
      *
@@ -20,12 +21,14 @@ class User extends Model implements UserInterface, RemindableInterface {
 
     /**
      * Attributes that are allowed to be mass assigned.
+     *
      * @var array
      */
     protected $fillable = [];
 
     /**
      * Attributes excluded from the model's JSON form.
+     *
      * @var array
      */
     protected $hidden = [
@@ -35,6 +38,7 @@ class User extends Model implements UserInterface, RemindableInterface {
 
     /**
      * Ardent validation rules
+     *
      * @var array
      */
     public static $rules = [
@@ -74,6 +78,12 @@ class User extends Model implements UserInterface, RemindableInterface {
         return $this->email;
     }
 
+    /**
+     * Build update rules
+     *
+     * @param  array    $rules
+     * @return array
+     */
     protected function buildUpdateRules(array $rules = array())
     {
         /**
@@ -96,22 +106,65 @@ class User extends Model implements UserInterface, RemindableInterface {
      * Relations
      */
 
+
+    /**
+     * Roles - belongs to many roles
+     *
+     * @return BelongsToMany
+     */
     public function roles()
     {
         return $this->belongsToMany('Role', 'user_roles');
     }
 
+    /**
+     * Session - has many sessions
+     *
+     * @return HasMany
+     */
     public function sessions()
     {
         return $this->hasMany('Dec\Api\Models\ApiSession', 'user_id', 'id');
     }
 
     /**
-     * Alias to eloquent many-to-many relation's
-     * attach() method
+     * Alias for eloquent many-to-many sync(). Overwrites existing.
+     *
+     * @param  array $roles
+     * @return boolean
+     */
+    public function syncRoles($roles)
+    {
+        if (!is_array($roles))
+        {
+            $this->errors()->add('roles', 'No roles');
+
+            return false;
+        }
+
+        $attach = [];
+
+        foreach ($roles as $role)
+        {
+            if (is_object($role))
+                $id = $role->getKey();
+
+            if (is_array($role))
+                $id = $role['id'];
+
+            if (!empty($id))
+                $attach[] = $id;
+        }
+
+        $this->roles()->sync($attach);
+
+        return true;
+    }
+
+    /**
+     * Alias to eloquent many-to-many attach() method. Appends to existing.
      *
      * @param mixed $role
-     *
      * @return void
      */
     public function attachRole($role)
@@ -129,7 +182,6 @@ class User extends Model implements UserInterface, RemindableInterface {
      * Attach multiple roles to a user
      *
      * @param $roles
-     * @access public
      * @return void
      */
     public function attachRoles($roles)
@@ -145,7 +197,6 @@ class User extends Model implements UserInterface, RemindableInterface {
      * detach() method
      *
      * @param mixed $role
-     *
      * @return void
      */
     public function detachRole($role)
@@ -177,12 +228,13 @@ class User extends Model implements UserInterface, RemindableInterface {
     /**
      * Checks if the user has a Role by its name
      *
-     * @param string $name Role name.
+     * @param string    $name.
      * @return boolean
      */
     public function hasRole($name)
     {
-        foreach ($this->roles as $role) {
+        foreach ($this->roles as $role)
+        {
             if ($role->name == $name)
             {
                 return true;
@@ -193,17 +245,15 @@ class User extends Model implements UserInterface, RemindableInterface {
     }
 
     /**
-     * Check if user has a permission by its name
+     * Check if user has a permission
      *
-     * @param string $permission Permission string.
-     *
-     * @access public
-     *
+     * @param string    $permission
      * @return boolean
      */
     public function can($permission)
     {
-        foreach ($this->roles as $role) {
+        foreach ($this->roles as $role)
+        {
             // Validate against the Permission table
             foreach ($role->permissions as $perm)
             {
