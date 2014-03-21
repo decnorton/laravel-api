@@ -24,6 +24,7 @@ class Model extends \Illuminate\Database\Eloquent\Model {
     /**
      * Hash instance
      *
+     * @var Illuminate\Hashing\HasherInterface
      */
     protected $hash;
 
@@ -182,9 +183,8 @@ class Model extends \Illuminate\Database\Eloquent\Model {
      *
      * @return boolean      Should continue creation
      */
-    public function beforePerformCreate()
+    public function beforePerformInsert()
     {
-        // Validate
         return $this->isValid();
     }
 
@@ -197,16 +197,21 @@ class Model extends \Illuminate\Database\Eloquent\Model {
     {
         // Validate
         $rules = $this->buildUpdateRules(static::$rules);
+
         return $this->isValid($rules);
     }
 
     /**
      * Prepare attributes for insertion into database
+     *
      * @return void
      */
     protected function prepareAttributes()
     {
+        // Remove redundant attributes
         $this->attributes = $this->purgeArray($this->getAttributes());
+
+        // Hash password attributes
         $this->attributes = $this->hashPasswordAttributes($this->getAttributes(), static::$passwordAttributes);
     }
 
@@ -234,7 +239,7 @@ class Model extends \Illuminate\Database\Eloquent\Model {
      */
     protected function performInsert(\Illuminate\Database\Eloquent\Builder $query)
     {
-        if (!$this->beforePerformCreate())
+        if (!$this->beforePerformInsert())
             return false;
 
         $this->prepareAttributes();
