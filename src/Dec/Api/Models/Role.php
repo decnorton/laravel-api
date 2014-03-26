@@ -50,6 +50,10 @@ class Role extends Model {
      */
     public function attachPermission($permission)
     {
+        if (is_string($permission)
+            && $model = Permission::select('id')->where('name', $permission)->first())
+            $permission = $model->getKey();
+
         if (is_object($permission))
             $permission = $permission->getKey();
 
