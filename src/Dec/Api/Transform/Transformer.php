@@ -36,6 +36,9 @@ class Transformer {
 
     public function transformCollection($collection, $transformer)
     {
+        if (!$collection)
+            return null;
+
         $resource = new Collection($collection, new $transformer);
 
         return $this->fractal->createData($resource)->toArray();
@@ -43,6 +46,9 @@ class Transformer {
 
     public function transform($model, $transformer)
     {
+        if (!$model)
+            return null;
+
         $resource = new Item($model, new $transformer);
 
         return $this->fractal->createData($resource)->toArray();

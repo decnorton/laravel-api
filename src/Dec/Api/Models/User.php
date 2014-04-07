@@ -106,7 +106,6 @@ class User extends Model implements UserInterface, RemindableInterface {
      * Relations
      */
 
-
     /**
      * Roles - belongs to many roles
      *
