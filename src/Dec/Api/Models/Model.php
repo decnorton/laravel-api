@@ -69,6 +69,11 @@ class Model extends \Illuminate\Database\Eloquent\Model {
         $this->hash = \App::make('hash');
     }
 
+    public function getIsDeletedAttribute()
+    {
+        return (isset($softDelete) && $softDelete) && $this->deleted_at != null;
+    }
+
     /**
      * Add the basic purge filters
      *
