@@ -24,7 +24,7 @@ class ApiServiceProvider extends ServiceProvider {
     public function boot()
     {
         $this->package('dec/api');
-        $this->app['router']->filter('api.auth.filter', 'api.auth.filter');
+        $this->app['router']->filter('api.auth', 'api.auth.filter');
         $this->app['router']->filter('api.permission', 'api.filter.permission');
         $this->app['router']->filter('api.role', 'api.filter.role');
     }
