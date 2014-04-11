@@ -1,6 +1,7 @@
 <?php namespace Dec\Api\Auth;
 
 use Carbon\Carbon;
+use Dec\Api\Exceptions\InvalidTokenException;
 use Dec\Api\Models\ApiSession;
 use Dec\Api\Models\ApiClient;
 use Exception;
@@ -129,17 +130,18 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
     }
 
     /**
-     * Returns serialized token.
+     * Returns serialized session.
      *
-     * @param ApiSession $token
+     * @param ApiSession $session
      * @return string
      */
-    public function serializeSession(ApiSession $token)
+    public function serializeSession(ApiSession $session)
     {
         $payload = [
-            'client_id'  => $token->client_id,
-            'user_id'    => $token->user_id,
-            'public_key' => $token->public_key
+            'client_id'  => $session->client_id,
+            'user_id'    => $session->user_id,
+            'public_key' => $session->public_key,
+            'expires'    => $session->expires
         ];
 
         return $this->encrypter->encrypt($payload);
@@ -160,11 +162,19 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
         }
         catch (DecryptException $e)
         {
-            return null;
+            throw new InvalidTokenException;
         }
 
         if (empty($data['client_id']) || empty($data['user_id']) || empty($data['public_key']))
-            return null;
+            throw new InvalidTokenException;
+
+        if (!empty($data['expires']))
+        {
+            $expires = new Carbon($data['expires']);
+
+            if (Carbon::now()->gt($expires))
+                throw new TokenExpiredException;
+        }
 
         $privateKey = $this->hasher->makePrivate($data['public_key']);
 
@@ -175,10 +185,15 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
                   ->where('private_key',    $privateKey);
         })->first();
 
+        if (!$accessToken)
+            return null;
+
         return $accessToken;
     }
 
     /**
+     * Remove all sessions for user
+     *
      * @param mixed|\Illuminate\Auth\UserInterface $identifier
      * @return bool
      */

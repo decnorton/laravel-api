@@ -45,7 +45,9 @@ class Paginator {
             foreach ($with as $relation)
             {
                 if (method_exists($model, explode('.', $relation)[0]))
+                {
                     $builder->with($relation);
+                }
             }
         }
 
