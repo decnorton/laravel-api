@@ -155,6 +155,8 @@ class EloquentApiAuthProvider implements ApiAuthProviderInterface {
      */
     public function deserializeSession($payload)
     {
+        if (!$payload)
+            return null;
 
         try
         {

@@ -31,9 +31,9 @@ class ApiAuthDriver {
         return $this->provider->findClient($clientPayload);
     }
 
-    public function token($accessTokenPayload)
+    public function token($token)
     {
-        return $this->provider->findSession($accessTokenPayload);
+        return $this->provider->findSession($token);
     }
 
     /**
