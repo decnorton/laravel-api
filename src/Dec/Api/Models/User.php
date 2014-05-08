@@ -189,7 +189,8 @@ class User extends Model implements UserInterface, RemindableInterface {
         if (is_array($role))
             $role = $role['id'];
 
-        $this->roles()->attach($role);
+        if (!$this->hasRole($role))
+            $this->roles()->attach($role);
     }
 
     /**
@@ -245,13 +246,37 @@ class User extends Model implements UserInterface, RemindableInterface {
      * @param string    $name.
      * @return boolean
      */
-    public function hasRole($name)
+    public function hasRole($role)
     {
-        foreach ($this->roles as $role)
+        $type = null;
+
+        if (is_object($role))
+            $type = 'object';
+
+        if (is_int($role))
+            $type = 'id';
+
+        if (is_string($role))
+            $type = 'name';
+
+        if (!$type)
+            return false;
+
+        foreach ($this->roles as $r)
         {
-            if ($role->name == $name)
+            switch ($type)
             {
-                return true;
+                case 'object':
+                    if ($r->id == $role->id) return true;
+                    break;
+
+                case 'id':
+                    if ($r->id == $role) return true;
+                    break;
+
+                case 'name':
+                    if ($r->name == $role) return true;
+                    break;
             }
         }
 
