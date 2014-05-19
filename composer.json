@@ -1,6 +1,6 @@
 {
     "name": "dec/api",
-    "description": "",
+    "description": "Basic API using access tokens for authentication",
     "authors": [
         {
             "name": "Dec Norton",
