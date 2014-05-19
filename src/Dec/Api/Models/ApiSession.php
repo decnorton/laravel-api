@@ -2,7 +2,7 @@
 
 use Carbon\Carbon;
 
-class ApiSession extends Model {
+class ApiSession extends \Dec\Validation\Model {
 
     /**
      * The database table used by the model.

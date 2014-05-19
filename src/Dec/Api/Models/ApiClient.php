@@ -1,6 +1,6 @@
 <?php namespace Dec\Api\Models;
 
-class ApiClient extends Model {
+class ApiClient extends \Dec\Validation\Model {
 
     /**
      * The database table used by the model.

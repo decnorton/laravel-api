@@ -5,7 +5,6 @@ class HashProvider {
     private $algo = 'sha256';
     private $hashKey;
 
-
     function __construct($hashKey)
     {
         $this->hashKey = $hashKey;
