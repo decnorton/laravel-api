@@ -25,8 +25,6 @@ class ApiServiceProvider extends ServiceProvider {
     {
         $this->package('dec/api');
         $this->app['router']->filter('api.auth', 'api.auth.filter');
-        $this->app['router']->filter('api.permission', 'api.filter.permission');
-        $this->app['router']->filter('api.role', 'api.filter.role');
     }
 
     /**
@@ -51,16 +49,6 @@ class ApiServiceProvider extends ServiceProvider {
             return new ApiAuthFilter($driver, $events);
         });
 
-        $this->app->bindShared('api.filter.permission', function($app)
-        {
-            return new PermissionFilter;
-        });
-
-        $this->app->bindShared('api.filter.role', function($app)
-        {
-            return new RoleFilter;
-        });
-
         $this->app->bind('Dec\Api\Auth\AuthController', function($app)
         {
             $driver = $app['api.auth']->driver();
@@ -78,9 +66,7 @@ class ApiServiceProvider extends ServiceProvider {
     {
         return [
             'api.auth',
-            'api.auth.filter',
-            'api.filter.permission',
-            'api.filter.role'
+            'api.auth.filter'
         ];
     }
 
