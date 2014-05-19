@@ -37,7 +37,6 @@ class ApiServiceProvider extends ServiceProvider {
     public function register()
     {
         $this->app->bind('api', 'Dec\Api\Api');
-        $this->app->bind('transformer', 'Dec\Api\Transform\Transformer');
 
         $this->app->bindShared('api.auth', function($app)
         {
