@@ -5,6 +5,7 @@ use DateTime;
 use Exception;
 use Input;
 use InvalidArgumentException;
+use Log;
 use Response;
 
 class Paginator {
