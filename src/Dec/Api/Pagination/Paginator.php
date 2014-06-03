@@ -72,15 +72,11 @@ class Paginator {
 
 
         if ($showAll)
-        {
-            return Response::json([
-                'all' => true,
-                'data' => $builder->get()->toArray()
-            ], 200);
-        }
+            return $builder->get();
 
         $count = Input::get('count') ?: static::$defaultCount;
-        return Response::json($builder->paginate($count)->toArray(), 200);
+
+        return $builder->paginate($count);
     }
 
 }
