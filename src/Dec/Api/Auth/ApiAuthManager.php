@@ -4,12 +4,12 @@ use Illuminate\Support\Manager;
 
 class ApiAuthManager extends Manager {
 
-    protected function getDefaultDriver()
+    public function getDefaultDriver()
     {
         return 'eloquent';
     }
 
-    protected function createEloquentDriver()
+    public function createEloquentDriver()
     {
         $provider = $this->createEloquentProvider();
         $users = $this->app['auth']->driver()->getProvider();
@@ -17,7 +17,7 @@ class ApiAuthManager extends Manager {
         return new ApiAuthDriver($provider, $users);
     }
 
-    protected function createEloquentProvider()
+    public function createEloquentProvider()
     {
         $encrypter = $this->app['encrypter'];
         $hasher = new HashProvider($this->app['config']['app.key']);
